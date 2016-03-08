@@ -1,5 +1,8 @@
 ---
 
+    - name: start docker
+      raw: sudo systemctl start docker
+
     - name: restart docker
       service: name=docker state=restarted
 

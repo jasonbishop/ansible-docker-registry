@@ -38,7 +38,7 @@
 #      memory_limit: 1024MB
       name: registry
       ports:
-        - "127.0.0.1:5000:5000"
+        - "{{docker_registry_localip}}:5000:5000"
       env:
         REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /registry
       volumes:
@@ -74,13 +74,14 @@
       state: latest
     with_items:
       - openssl
+      - python-passlib
     when: ansible_os_family == "RedHat"
 
-  - name: Install latest passlib with pip
-    pip:
-      name: passlib
-      state: latest
-      extra_args: "{{ pip_extra_args }}"
+#  - name: Install latest passlib with pip
+#    pip:
+#      name: passlib
+#      state: latest
+#      extra_args: "{{ pip_extra_args }}"
 
   - file: path=/etc/nginx/certs state=directory
     when: docker_registry_with_ssl|bool
@@ -97,6 +98,9 @@
   - htpasswd: path=/etc/nginx/conf.d/registry.htpasswd name={{item.name}} password={{item.password}} owner=root group=root mode=0644
     with_items: docker_registry_users
     register: docker_registry_auth
+    when: docker_registry_users is defined
+
+  - file: path=/etc/nginx/conf.d state=directory
 
   - template: src=docker-registry-v2.j2 dest=/etc/nginx/conf.d/docker-registry.conf owner=root group=root mode=0644
     register: docker_registry_vhost
@@ -116,7 +120,7 @@
       image: nginx:latest
       name: www-registry
       hostname: "{{ docker_registry_host }}"
-      ports: "{{docker_registry_ip}}:{{docker_registry_port}}:443"
+      ports: "{{docker_registry_localip}}:{{docker_registry_port}}:443"
       links:
         - registry:registry
       volumes:

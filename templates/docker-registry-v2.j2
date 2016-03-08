@@ -47,10 +47,11 @@ server {
 
     add_header 'Docker-Distribution-Api-Version:' 'registry/2.0' always;
 
+{% if docker_registry_users is defined %}
     # To add basic authentication to v2 use auth_basic setting plus add_header
     auth_basic "Restricted access to Docker Registry";
     auth_basic_user_file /etc/nginx/conf.d/registry.htpasswd;
-
+{% endif %}
   }
 
 }

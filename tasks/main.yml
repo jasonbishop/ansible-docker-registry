@@ -1,13 +1,68 @@
 ---
 
+  - name: Generic | Install Docker
+    action: "{{ ansible_pkg_mgr }}"
+    args:
+      name: docker
+      state: latest
+
+  - name: Set docker config file directory
+    set_fact:
+      docker_config_dir: "/etc/sysconfig"
+
+  - name: Override docker config file directory for Debian
+    set_fact:
+      docker_config_dir: "/etc/default"
+    when: ansible_distribution == "Debian" or ansible_distribution == "Ubuntu"
+
+  - name: Verify docker config files exists
+    file: path={{ docker_config_dir }}/{{ item }} state=touch
+    changed_when: false
+    with_items:
+      - docker
+      - docker-network
+
+  - name: Local vars for systemd installs
+    set_fact:
+      docker_config_net: "{{ docker_config_dir }}/docker-network"
+      docker_env_export: ""
+
+  - name: Install http_proxy into docker(-network)
+    lineinfile: dest={{ docker_config_net }} regexp="^{{ docker_env_export }}http_proxy=" line="{{docker_env_export}}http_proxy={{ proxy_env['http_proxy'] }}"
+    when: proxy_env['http_proxy'] is defined
+    notify:
+      - restart docker
+
+  - name: Install https_proxy into docker(-network)
+    lineinfile: dest={{ docker_config_net }} regexp="^{{ docker_env_export }}https_proxy=" line="{{ docker_env_export }}https_proxy={{ proxy_env['https_proxy'] }}"
+    when: proxy_env['https_proxy'] is defined
+    notify:
+      - restart docker
+
+  - name: Install no-proxy into docker(-network)
+    lineinfile: dest={{ docker_config_net }} regexp="^{{ docker_env_export }}no_proxy=" line="{{ docker_env_export }}no_proxy={{ no_proxy }},{{ item | join(',') }}"
+    when: no_proxy is defined
+    with_items: groups['registry']
+    notify:
+      - restart docker
+
+  - name: Add any insecure registrys to docker config
+    lineinfile: dest={{ docker_config_dir }}/docker regexp=^INSECURE_REGISTRY= line=INSECURE_REGISTRY="'{% for reg in insecure_registrys %}--insecure-registry={{ reg }} {% endfor %}'"
+    when: insecure_registrys is defined and insecure_registrys > 0
+    notify:
+      - restart docker
+
+  - name: Enable Docker
+    raw: sudo systemctl start docker
+
   - name: Check docker version
     shell: docker --version
     register: docker_version
 
   - name: Install Docker Registry v2 for Debian or RedHat
     include: docker-registry-v2.yml
-    when: docker_version.stdout|group('Docker\sversion\s(\d\.\d\.\d),\sbuild\s(\w*)', 1)|version_compare(1.6, '>=')
+    when: docker_version.stdout|group('Docker\sversion\s(\d\.\d\.\d)-el7.centos,\sbuild\s(\w*)', 1)|version_compare(1.6, '>=')
 
   - name: Install Docker Registry v1 for Debian or RedHat
     include: docker-registry-v1.yml
-    when: docker_version.stdout|group('Docker\sversion\s(\d\.\d\.\d),\sbuild\s(\w*)', 1)|version_compare(1.6, '<')
+    when: docker_version.stdout|group('Docker\sversion\s(\d\.\d\.\d)-el7.centos,\sbuild\s(\w*)', 1)|version_compare(1.6, '<')

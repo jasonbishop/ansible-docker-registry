@@ -1,10 +1,16 @@
 ---
 
   # We must install pip before we can use the pip module below
-  - easy_install: name=pip #state=latest required ansible 2.x
-    environment: "{{proxy_env}}"
-    sudo: yes
+  - name: CentOS | Install EPEL
+    yum:
+      pkg=epel-release
+      state=latest
 
+  - name: CentOS | Install pip
+    yum:
+      pkg=python-pip
+      state=latest
+ 
   # Upgrade pip to fix docker-py/issues/525
   # Install latest version when no specific release is set.
   - name: Upgrade latest pip, setuptools, and docker-py with pip
@@ -17,6 +23,7 @@
       - { name: setuptools, version: "{{ pip_version_setuptools }}" }
       - { name: six, version: "{{ pip_version_six }}" }
       - { name: docker-py, version: "{{ pip_version_docker_py }}" }
+    environment: "{{proxy_env}}"
     sudo: yes
     when: item.version=="latest"
 
@@ -32,5 +39,6 @@
       - { name: setuptools, version: "{{ pip_version_setuptools }}" }
       - { name: six, version: "{{ pip_version_six }}" }
       - { name: docker-py, version: "{{ pip_version_docker_py }}" }
+    environment: "{{proxy_env}}"
     sudo: yes
     when: item.version!="latest"

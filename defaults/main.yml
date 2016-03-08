@@ -6,13 +6,21 @@ pip_version_six: 1.4
 pip_version_docker_py: 1.1.0
 
 pip_extra_args: ""
-proxy_env: {}
+proxy_env:
+  http_proxy: http://10.1.52.100:8080
+  https_proxy: https://10.1.52.100:8080
 
-docker_registry_host: "{{ansible_fqdn}}"
-docker_registry_ip: "{{hostvars[inventory_hostname]['ansible_eth1']['ipv4']['address']}}"
+
+#docker_registry_host: "{{ansible_fqdn}}"
+docker_registry_host: 10.76.16.102
+
+#docker_registry_ip: "{{hostvars[inventory_hostname]['ansible_eth1']['ipv4']['address']}}"
+docker_registry_ip: 10.76.16.102
+docker_registry_localip: "{{hostvars[inventory_hostname]['ansible_eth0']['ipv4']['address']}}"
+
 docker_registry_with_ssl: yes
 docker_registry_port: 443
 
-docker_registry_users:
-  - name: docker
-    password: changeit
+#docker_registry_users:
+#  - name: docker
+#    password: changeit
