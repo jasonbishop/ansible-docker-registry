@@ -19,7 +19,7 @@ docker_registry_ip: 10.76.16.102
 docker_registry_localip: "{{hostvars[inventory_hostname]['ansible_eth0']['ipv4']['address']}}"
 
 docker_registry_with_ssl: no
-docker_registry_port: 5000
+docker_registry_port: 4000
 
 #docker_registry_users:
 #  - name: docker
