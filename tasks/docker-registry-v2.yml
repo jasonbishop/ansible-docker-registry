@@ -121,6 +121,8 @@
       name: www-registry
       hostname: "{{ docker_registry_host }}"
       ports: "{{docker_registry_localip}}:{{docker_registry_port}}:{{docker_registry_port}}"
+      expose:
+        - 4000
       links:
         - registry:registry
       volumes:
