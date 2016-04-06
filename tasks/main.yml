@@ -61,8 +61,8 @@
 
   - name: Install Docker Registry v2 for Debian or RedHat
     include: docker-registry-v2.yml
-    when: docker_version.stdout|group('Docker\sversion\s(\d\.\d\.\d)-el7.centos,\sbuild\s(\w*)', 1)|version_compare(1.6, '>=')
+    when: docker_version.stdout|group('Docker\sversion\s(\d\.\d\.\d),\sbuild\s(\w*)', 1)|version_compare(1.6, '>=')
 
   - name: Install Docker Registry v1 for Debian or RedHat
     include: docker-registry-v1.yml
-    when: docker_version.stdout|group('Docker\sversion\s(\d\.\d\.\d)-el7.centos,\sbuild\s(\w*)', 1)|version_compare(1.6, '<')
+    when: docker_version.stdout|group('Docker\sversion\s(\d\.\d\.\d),\sbuild\s(\w*)', 1)|version_compare(1.6, '<')
